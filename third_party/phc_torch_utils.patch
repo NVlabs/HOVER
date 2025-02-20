@@ -1,0 +1,129 @@
+31d30
+< from isaacgym.torch_utils import *
+38c37,102
+< def project_to_norm(x, norm=5, z_type = "sphere"):
+---
+> # The following functions are copied from Isaac Lab to avoid dependency on it.
+> # ---- Start of functions from Isaac Lab -----
+> @torch.jit.script
+> def quat_from_euler_xyz(roll: torch.Tensor, pitch: torch.Tensor, yaw: torch.Tensor) -> torch.Tensor:
+>     """Convert rotations given as Euler angles in radians to Quaternions.
+> 
+>     Note:
+>         The euler angles are assumed in XYZ convention.
+> 
+>     Args:
+>         roll: Rotation around x-axis (in radians). Shape is (N,).
+>         pitch: Rotation around y-axis (in radians). Shape is (N,).
+>         yaw: Rotation around z-axis (in radians). Shape is (N,).
+> 
+>     Returns:
+>         The quaternion in (w, x, y, z). Shape is (N, 4).
+>     """
+>     cy = torch.cos(yaw * 0.5)
+>     sy = torch.sin(yaw * 0.5)
+>     cr = torch.cos(roll * 0.5)
+>     sr = torch.sin(roll * 0.5)
+>     cp = torch.cos(pitch * 0.5)
+>     sp = torch.sin(pitch * 0.5)
+>     # compute quaternion
+>     qw = cy * cr * cp + sy * sr * sp
+>     qx = cy * sr * cp - sy * cr * sp
+>     qy = cy * cr * sp + sy * sr * cp
+>     qz = sy * cr * cp - cy * sr * sp
+> 
+>     return torch.stack([qw, qx, qy, qz], dim=-1)
+> 
+> 
+> @torch.jit.script
+> def normalize(x: torch.Tensor, eps: float = 1e-9) -> torch.Tensor:
+>     """Normalizes a given input tensor to unit length.
+> 
+>     Args:
+>         x: Input tensor of shape (N, dims).
+>         eps: A small value to avoid division by zero. Defaults to 1e-9.
+> 
+>     Returns:
+>         Normalized tensor of shape (N, dims).
+>     """
+>     return x / x.norm(p=2, dim=-1).clamp(min=eps, max=None).unsqueeze(-1)
+> 
+> 
+> @torch.jit.script
+> def quat_from_angle_axis(angle: torch.Tensor, axis: torch.Tensor) -> torch.Tensor:
+>     """Convert rotations given as angle-axis to quaternions.
+> 
+>     Args:
+>         angle: The angle turned anti-clockwise in radians around the vector's direction. Shape is (N,).
+>         axis: The axis of rotation. Shape is (N, 3).
+> 
+>     Returns:
+>         The quaternion in (w, x, y, z). Shape is (N, 4).
+>     """
+>     theta = (angle / 2).unsqueeze(-1)
+>     xyz = normalize(axis) * theta.sin()
+>     w = theta.cos()
+>     return normalize(torch.cat([w, xyz], dim=-1))
+> 
+> # ---- End of functions from Isaac Lab -----
+> 
+> 
+> def project_to_norm(x, norm=5, z_type="sphere"):
+44a109
+> 
+52,54c117
+<     c = q_vec * \
+<         torch.bmm(q_vec.view(shape[0], 1, 3), v.view(
+<             shape[0], 3, 1)).squeeze(-1) * 2.0
+---
+>     c = q_vec * torch.bmm(q_vec.view(shape[0], 1, 3), v.view(shape[0], 3, 1)).squeeze(-1) * 2.0
+56a120,125
+> 
+> @torch.jit.script
+> def normalize_angle(x):
+>     return torch.atan2(torch.sin(x), torch.cos(x))
+> 
+> 
+62c131
+<     # ZL: could have issues. 
+---
+>     # ZL: could have issues.
+144c213,214
+<     q = quat_from_euler_xyz(roll, pitch, yaw)
+---
+>     q = quat_from_euler_xyz(roll, pitch, yaw)  # IsaacLab return wxyz
+>     q = q.roll(-1, dims=-1)
+172c242,243
+<     q = quat_from_angle_axis(angle, axis)
+---
+>     q = quat_from_angle_axis(angle, axis)  # IsaacLab return wxyz
+>     q = q.roll(-1, dims=-1)
+226c297,298
+<     heading_q = quat_from_angle_axis(heading, axis)
+---
+>     heading_q = quat_from_angle_axis(heading, axis)  # IsaacLab return wxyz
+>     heading_q = heading_q.roll(-1, dims=-1)
+240c312,313
+<     heading_q = quat_from_angle_axis(-heading, axis)
+---
+>     heading_q = quat_from_angle_axis(-heading, axis)  # IsaacLab return wxyz
+>     heading_q = heading_q.roll(-1, dims=-1)
+242a316
+> 
+244c318
+<     if act_name == 'relu':
+---
+>     if act_name == "relu":
+246c320
+<     elif act_name == 'tanh':
+---
+>     elif act_name == "tanh":
+248c322
+<     elif act_name == 'sigmoid':
+---
+>     elif act_name == "sigmoid":
+261c335
+<         return nn.Identity
+\ No newline at end of file
+---
+>         return nn.Identity

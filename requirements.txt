@@ -1,0 +1,17 @@
+joblib>=1.2.0
+wheel # Without this chumpy (which is a dep of smplsim) fails to build.
+git+https://github.com/ZhengyiLuo/SMPLSim.git@dd65a86
+easydict
+warp-lang
+dataclass-wizard
+
+-e neural_wbc/core
+-e neural_wbc/data
+-e neural_wbc/isaac_lab_wrapper
+-e neural_wbc/mujoco_wrapper
+-e neural_wbc/inference_env
+-e neural_wbc/hw_wrappers
+-e neural_wbc/student_policy
+-e third_party/human2humanoid/phc
+-e third_party/mujoco_viewer
+-e third_party/rsl_rl

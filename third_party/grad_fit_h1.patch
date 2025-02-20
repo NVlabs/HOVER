@@ -1,0 +1,15 @@
+116a117,118
+>         if not amass_data:
+>             continue
+169,176c171,172
+<                 }
+<         
+<         print(f"dumping {data_key} for testing, remove the line if you want to process all data")
+<         import ipdb; ipdb.set_trace()
+<         joblib.dump(data_dump, "data/h1/test.pkl")
+<     
+<         
+<     import ipdb; ipdb.set_trace()
+---
+>                 }
+> 

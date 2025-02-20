@@ -1,0 +1,84 @@
+[build-system]
+requires = ["setuptools", "toml"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "neural_wbc"
+version = "0.1.0"
+
+[tool.isort]
+atomic = true
+profile = "black"
+line_length = 120
+py_version = 310
+skip_glob = ["docs/*", "logs/*"]
+group_by_package = true
+
+# These should be under tool.isort, not directly in the file
+known_firstparty = ["neural_wbc"]  # Changed to list format
+known_local_folder = ["config"]  # Changed to list format
+
+sections = [
+    "FUTURE",
+    "STDLIB",
+    "THIRDPARTY",
+    "FIRSTPARTY",
+    "ISAACLABPARTY",
+    "LOCALFOLDER",
+]
+extra_standard_library = [
+    "numpy",
+    "h5py",
+    "open3d",
+    "torch",
+    "tensordict",
+    "bpy",
+    "matplotlib",
+    "gymnasium",
+    "gym",
+    "scipy",
+    "hid",
+    "yaml",
+    "prettytable",
+    "toml",
+    "trimesh",
+    "tqdm",
+]
+known_thirdparty = [
+    "omni.isaac.core",
+    "omni.replicator.isaac",
+    "omni.replicator.core",
+    "pxr",
+    "omni.kit.*",
+    "warp",
+    "carb",
+]
+known_isaaclabparty = [
+    "isaaclab",
+    "isaaclab_tasks",
+    "isaaclab_assets"
+]
+
+[tool.setuptools]
+package-dir = {"rsl_rl" = "third_party/rsl_rl/rsl_rl"}
+packages = ["rsl_rl"]
+
+[tool.pyright]
+exclude = [
+    "**/__pycache__",
+    "**/docs",
+    "**/logs",
+    ".git",
+    ".vscode",
+]
+
+typeCheckingMode = "basic"
+pythonVersion = "3.10"
+pythonPlatform = "Linux"
+enableTypeIgnoreComments = true
+
+reportMissingImports = "none"
+reportMissingModuleSource = "none"
+reportGeneralTypeIssues = "none"
+reportOptionalMemberAccess = "warning"
+reportPrivateUsage = "warning"

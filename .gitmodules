@@ -1,0 +1,7 @@
+[submodule "third_party/poselib"]
+  path = third_party/poselib
+  url = ../../gr00t-control/poselib.git
+[submodule "third_party/human2humanoid"]
+  path = third_party/human2humanoid
+  url = https://github.com/LeCAR-Lab/human2humanoid
+  ignore = dirty
