@@ -1,4 +1,4 @@
-# GR00T Control - Neural WBC
+# Neural WBC
 
 [![IsaacSim](https://img.shields.io/badge/IsaacSim-4.5.0-silver.svg)](https://docs.omniverse.nvidia.com/isaacsim/latest/overview.html)
 [![Isaac Lab](https://img.shields.io/badge/IsaacLab-2.0.0-silver)](https://isaac-sim.github.io/IsaacLab)
@@ -9,7 +9,7 @@
 
 # Table of Contents
 
-- [GR00T Control - Neural WBC](#gr00t-control---neural-wbc)
+- [Neural WBC](#neural-wbc)
 - [Table of Contents](#table-of-contents)
 - [Overview](#overview)
 - [Installation](#installation)
@@ -362,7 +362,7 @@ You can now run scripts in headless mode by passing the `--headless` option.
 
 # License
 
-GR00T-Control-HOVER is released under the Apache License 2.0. See LICENSE for additional details.
+HOVER is released under the Apache License 2.0. See LICENSE for additional details.
 
 # Contributors
 
