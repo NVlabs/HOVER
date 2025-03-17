@@ -435,8 +435,7 @@ HOVER WBC is released under the Apache License 2.0. See LICENSE for additional d
 
 > The names are ordered in alphabetical order by the last name:
 
-Joydeep Biswas, Yan Chang, Jim Fan, Pulkit Goyal, Lionel Gulich, Tairan He, Rushane Hua, Chenran Li, Wei Liu, Zhengyi Luo, Billy Okal, Stephan Pleines, Soha Pouya, Peter Varvak, Wenli Xiao, Huihua Zhao, Yuke Zhu
-
+Joydeep Biswas, Yan Chang, Jim Fan, Pulkit Goyal, Lionel Gulich, Tairan He, Rushane Hua, Neel Jawale, H. Hawkeye King, Chenran Li, Michael Lin, Wei Liu, Zhengyi Luo, Billy Okal, Stephan Pleines, Soha Pouya, Peter Varvak, Wenli Xiao, Huihua Zhao, Yuke Zhu
 
 # Acknowledgments
 
