@@ -3,8 +3,25 @@
 This module is a high-level wrapper for the [Unitree H1](https://unitree.com/h1) robot hardware. It is designed to provide convenient interfaces to deploy the trained policy on the Unitree H1 robot. The main purpose of this wrapper is to validate Whole Body Control (WBC) policies trained in IsaacLab on the real robot.
 > **Note:**  The sim-to-real deployment wrapper currently only supports the Unitree H1 robot. It can be extended to other robots by implementing the corresponding hardware wrapper interface.
 
+> **Note:** This guide assumes familiarity with basic Unitree H1 operation. Please refer to the official [Unitree H1 Operation Guide](https://support.unitree.com/home/en/H1_developer/quick_start) for fundamental robot operations, as these are outside the scope of this guide.
+
 ## Setup
-Our deployment setup uses an Ubuntu PC with GPU for running policy inference, connected to the H1 robot via Ethernet. For network configuration, please refer to the [Unitree H1 Quick Start Guide](https://support.unitree.com/home/en/H1_developer/start).
+Our deployment setup uses an Ubuntu PC with GPU for running policy inference, connected to the H1 robot via Ethernet. For network configuration, please refer to the [Unitree H1 Quick Start Guide](https://support.unitree.com/home/en/H1_developer/start). The IMU on-board the H1 robot is used for estimating the rotational velocity and gravity vector required as input to the policy.
+
+<div style="display: flex; justify-content: center;">
+
+| Component    | Specification              |
+|:----------------|:------------------:|
+| Control loop Rate    | 200 Hz              |
+| Policy inference rate    | 50 Hz             |
+| Robot Type      | Unitree H1         |
+| Environment   | Linux |
+| GPU   | NVIDIA GeForce RTX 4090 |
+</div>
+
+
+> **Note:** While these specifications detail our deployment environment, the policy can be deployed using any computer with similar capabilities. Performance may vary based on your specific hardware configuration. The student policy is light enough to be inferenced on a CPU as well.
+
 <div align="center">
 <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; display: inline-block;">
 <img src="docs/unitree_h1_setup.png" width="400"/>
@@ -12,8 +29,6 @@ Our deployment setup uses an Ubuntu PC with GPU for running policy inference, co
 <font size="1"><em>Unitree H1 setup</em></font>
 </div>
 </div>
-
-> **Note:** This guide assumes familiarity with basic Unitree H1 operation. Please refer to the official [Unitree H1 Operation Guide](https://support.unitree.com/home/en/H1_developer/quick_start) for fundamental robot operations, as these are outside the scope of this guide.
 
 ## Installation
 
