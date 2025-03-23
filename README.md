@@ -49,7 +49,7 @@ demonstrations and to link to the original implementation in Isaac Gym, please v
 # Installation
 
 1. Install Isaac Lab, see the [installation guide](https://isaac-sim.github.io/IsaacLab/v2.0.0/source/setup/installation/index.html).
-    **Note**: Currently HOVER has been tested with Isaac Lab versions 2.0.0 and 2.1.0. After you clone the Isaac Lab
+    **Note**: Currently HOVER has been tested with Isaac Lab versions 2.0.0. After you clone the Isaac Lab
     repository, check out the specific tag before installation. Also note that the `rsl_rl`
     package is renamed to `rsl_rl_lib` with the current `v2.0.0` tag of Isaac Lab, causing installation issues.
     This will be fixed once a new tag is created on the Isaac Lab repo.
