@@ -70,6 +70,13 @@ class Player:
                 student_cfg = StudentPolicyTrainerCfg(**config_dict)
                 student_trainer = StudentPolicyTrainer(env=self.wrapped_env, cfg=student_cfg)
                 self.policy = student_trainer.get_inference_policy(device=self.env.device)
+
+                # export student policy to onnx
+                onnx_program = torch.onnx.export(self.policy, self.wrapped_env.get_observations(), dynamo=True)
+                export_model_dir = os.path.join(student_path, "exported")
+                os.makedirs(export_model_dir, exist_ok=True)
+                onnx_program.save(os.path.join(export_model_dir, "policy.onnx"))
+                
             else:
                 raise ValueError("student_policy.resume_path is needed for play or eval. Please specify a value.")
         else:
