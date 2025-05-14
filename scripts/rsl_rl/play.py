@@ -13,21 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-from teacher_policy_cfg import TeacherPolicyCfg
-
 from isaaclab.app import AppLauncher
 
 # local imports
 from utils import get_player_args  # isort: skip
+import cli_args  # isort: skip
 
 
 # add argparse arguments
 parser = get_player_args(description="Plays motion tracking policy in Isaac Lab.")
 parser.add_argument("--randomize", action="store_true", help="Whether to randomize reference motion while playing.")
+cli_args.add_rsl_rl_args(parser)
 
-# append RSL-RL cli arguments
-TeacherPolicyCfg.add_args_to_parser(parser)
 # append AppLauncher cli args
 AppLauncher.add_app_launcher_args(parser)
 args_cli = parser.parse_args()
@@ -35,6 +32,7 @@ args_cli = parser.parse_args()
 # launch omniverse app
 app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
+
 
 from players import DemoPlayer
 

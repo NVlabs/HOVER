@@ -99,9 +99,9 @@ class StudentPolicyTrainer:
                 with torch.inference_mode():
                     actions = self._produce_actions(obs_dict)
                     obs, privileged_obs, rewards, dones, infos = self._env.step(actions.detach())
-                    gt_actions = self._get_ground_truth_actions(obs_dict["teacher_policy"])
+                    gt_actions = self._get_ground_truth_actions(obs_dict["teacher"])
                     slice = Slice(
-                        policy_observations=obs_dict["teacher_policy"],
+                        policy_observations=obs_dict["teacher"],
                         student_observations=obs_dict["student_policy"],
                         ground_truth_actions=gt_actions,
                         applied_actions=actions,
@@ -189,7 +189,7 @@ class StudentPolicyTrainer:
 
         str = (
             " \033[1m Learning iteration"
-            f" {self._iterations+self.start_iteration}/{self._cfg.max_iteration+self.start_iteration} \033[0m "
+            f" {self._iterations + self.start_iteration} / {self._cfg.max_iteration + self.start_iteration} \033[0m "
         )
 
         if len(locs["rewbuffer"]) > 0:
@@ -252,7 +252,7 @@ class StudentPolicyTrainer:
             observations = obs["student_policy"]
             action = self._student.act(observations)
         else:
-            action = self._teacher.act_rollout(obs["teacher_policy"])
+            action = self._teacher.act_rollout(obs["teacher"])
 
         return action
 

@@ -31,7 +31,7 @@ class TestNeuralWBCEnv(unittest.TestCase):
             # Make sure that all observations do not contain NaN values.
             self.assertFalse(torch.any(torch.isnan(value)), msg=f"Observation {key} has NaN values {value}.")
         # Ensure that the policy and critic observations have shapes matching the configuration.
-        self.assertEqual(obs["teacher_policy"].shape, env.observation_space.shape)
+        self.assertEqual(obs["teacher"].shape, env.observation_space.shape)
         self.assertEqual(obs["critic"].shape, env.state_space.shape)
 
     def test_step(self):

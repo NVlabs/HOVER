@@ -17,7 +17,7 @@
 import pprint
 import yaml
 
-from teacher_policy_cfg import TeacherPolicyCfg
+import cli_args
 
 from isaaclab.app import AppLauncher
 
@@ -30,9 +30,9 @@ parser.add_argument("--metrics_path", type=str, default=None, help="Path to stor
 parser.add_argument(
     "--env_config_overwrite", type=str, default=None, help="Path to yaml file with overwriting configuration values."
 )
+cli_args.add_rsl_rl_args(parser)
 
-# append RSL-RL cli arguments
-TeacherPolicyCfg.add_args_to_parser(parser=parser)
+
 # append AppLauncher cli args
 AppLauncher.add_app_launcher_args(parser)
 args_cli = parser.parse_args()

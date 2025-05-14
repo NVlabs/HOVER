@@ -66,7 +66,8 @@ class TestObservations(unittest.TestCase):
         self.assertTrue(torch.equal(privileged_obs_dict["base_com_bias"], self.env.base_com_bias))
         self.assertTrue(
             torch.equal(
-                privileged_obs_dict["ground_friction_values"], self.asset.data.joint_friction[:, self.env.feet_ids]
+                privileged_obs_dict["ground_friction_values"],
+                self.asset.data.joint_friction_coeff[:, self.env.feet_ids],
             )
         )
         self.assertTrue(torch.equal(privileged_obs_dict["body_mass_scale"], self.env.body_mass_scale))

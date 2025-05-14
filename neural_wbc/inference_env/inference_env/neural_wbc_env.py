@@ -271,7 +271,7 @@ class NeuralWBCEnv(EnvironmentWrapper):
         if self.cfg.mode.is_distill_mode():
             obs = obs_dict["student_policy"]
         else:
-            obs = obs_dict["teacher_policy"]
+            obs = obs_dict["teacher"]
 
         # Extras are required for evaluation
         self.extras["observations"] = obs_dict
@@ -324,7 +324,7 @@ class NeuralWBCEnv(EnvironmentWrapper):
         if self.cfg.mode.is_distill_mode():
             self.history.reset(env_ids=env_ids)
 
-        obs = self.get_observations()
+        obs, _ = self.get_observations()
         return obs, None
 
     def get_student_observations(self) -> torch.Tensor:

@@ -42,11 +42,15 @@ class EnvironmentWrapper:
         """Resets environment specified by env_ids."""
         raise NotImplementedError
 
-    def get_observations(self) -> torch.Tensor:
+    def get_observations(self) -> tuple[torch.Tensor, dict]:
         """Gets policy observations for each environment based on the mode."""
         if self._mode.is_distill_mode():
-            return self.get_student_observations()
-        return self.get_teacher_observations()
+            return self.get_student_observations(), {
+                "observations": {"policy": self.get_student_observations(), "teacher": self.get_teacher_observations()}
+            }
+        return self.get_teacher_observations(), {
+            "observations": {"policy": self.get_teacher_observations(), "critic": self.get_privileged_observations()}
+        }
 
     def get_teacher_observations(self) -> torch.Tensor:
         """Gets teacher policy observations for each environment."""
@@ -54,4 +58,8 @@ class EnvironmentWrapper:
 
     def get_student_observations(self) -> torch.Tensor:
         """Gets student policy observations for each environment."""
+        raise NotImplementedError
+
+    def get_privileged_observations(self) -> torch.Tensor:
+        """Gets privileged observations for each environment."""
         raise NotImplementedError

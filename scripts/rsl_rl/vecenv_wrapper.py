@@ -76,7 +76,7 @@ class RslRlNeuralWBCVecEnvWrapper(EnvironmentWrapper):
         else:
             self.num_actions = self._env.action_space.shape[1]
         if hasattr(self._env, "observation_manager"):
-            self.num_obs = self._env.observation_manager.group_obs_dim["teacher_policy"][0]
+            self.num_obs = self._env.observation_manager.group_obs_dim["teacher"][0]
         else:
             self.num_obs = self._env.num_observations
         # -- privileged observations
@@ -144,12 +144,12 @@ class RslRlNeuralWBCVecEnvWrapper(EnvironmentWrapper):
         else:
             obs_dict = self.unwrapped._get_observations()
             if self.unwrapped.cfg.observation_noise_model:
-                obs_dict["teacher_policy"] = self.unwrapped._observation_noise_model.apply(obs_dict["teacher_policy"])
+                obs_dict["teacher"] = self.unwrapped._observation_noise_model.apply(obs_dict["teacher"])
         return obs_dict
 
     def get_teacher_observations(self) -> torch.Tensor:
         """Returns the current observations of the environment."""
-        return self.get_full_observations()["teacher_policy"]
+        return self.get_full_observations()["teacher"]
 
     def get_privileged_observations(self) -> torch.Tensor:
         """Returns the current observations of the environment."""
@@ -185,7 +185,7 @@ class RslRlNeuralWBCVecEnvWrapper(EnvironmentWrapper):
         # return observations
         if self._mode.is_distill_mode():
             return obs_dict["student_policy"], torch.tensor([])
-        return obs_dict["teacher_policy"], obs_dict["critic"]
+        return obs_dict["teacher"], obs_dict["critic"]
 
     def step(self, actions: torch.Tensor):
         # record step information
@@ -193,14 +193,13 @@ class RslRlNeuralWBCVecEnvWrapper(EnvironmentWrapper):
         # compute dones for compatibility with RSL-RL
         dones = (terminated | truncated).to(dtype=torch.long)
         # move extra observations to the extras dict
-        obs = obs_dict["student_policy"] if self._mode.is_distill_mode() else obs_dict["teacher_policy"]
-        privileged_obs = obs_dict["critic"]
+        obs = obs_dict["student_policy"] if self._mode.is_distill_mode() else obs_dict["teacher"]
         extras["observations"] = obs_dict
         # move time out information to the extras dict
         extras["time_outs"] = truncated
 
         # return the step information
-        return obs, privileged_obs, rew, dones, extras
+        return obs, rew, dones, extras
 
     def close(self):  # noqa: D102
         return self._env.close()

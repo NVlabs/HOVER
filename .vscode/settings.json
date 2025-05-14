@@ -1,0 +1,11 @@
+
+{"python.analysis.extraPaths": [
+    "${workspaceFolder}/../../IsaacLab/source/isaaclab",
+    "${workspaceFolder}/../../IsaacLab/source/isaaclab_mimic",
+    "${workspaceFolder}/../../IsaacLab/source/isaaclab_tasks",
+    "${workspaceFolder}/../../IsaacLab/source/isaaclab_assets",
+    "${workspaceFolder}/../../IsaacLab/source/extensions",
+    "${workspaceFolder}/../../IsaacLab/source/standalone",
+    "${workspaceFolder}/../../IsaacLab/source/isaaclab_rl"
+]
+}

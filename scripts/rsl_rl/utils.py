@@ -39,7 +39,7 @@ def get_customized_rsl_rl():
 
     import pkg_resources
 
-    dist = pkg_resources.require("rsl_rl")[0]
+    dist = pkg_resources.require("rsl-rl-lib")[0]
     sys.path.insert(0, dist.location)
 
     # Remove 'rsl_rl' from sys.modules if it was already imported

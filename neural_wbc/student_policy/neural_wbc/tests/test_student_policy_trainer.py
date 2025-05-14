@@ -59,11 +59,11 @@ class MockedEnv:
 
     def _generate_random_observations(self):
         obs = {
-            "teacher_policy": torch.randn(self.num_envs, self.num_obs, device=self.device),
+            "teacher": torch.randn(self.num_envs, self.num_obs, device=self.device),
             "critic": torch.randn(self.num_envs, self.num_privileged_obs, device=self.device),
             "student_policy": torch.randn(self.num_envs, self.num_student_obs, device=self.device),
         }
-        self.obs_buf = obs["teacher_policy"]
+        self.obs_buf = obs["teacher"]
         self.privileged_obs_buf = obs["critic"]
         self.student_obs_buf = obs["student_policy"]
         return obs
@@ -139,7 +139,7 @@ class TestStudentPolicyTrainer(unittest.TestCase):
         config_path = os.path.join(self.student_policy_path, "config.json")
         with open(config_path) as fh:
             config_dict = json.load(fh)
-        config_dict["teacher_policy"] = teacher_policy
+        config_dict["teacher"] = teacher_policy
         reconstructed_cfg = StudentPolicyTrainerCfg(**config_dict)
         self.assertEqual(cfg, reconstructed_cfg)
 

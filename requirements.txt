@@ -4,7 +4,7 @@ git+https://github.com/ZhengyiLuo/SMPLSim.git@dd65a86
 easydict
 warp-lang
 dataclass-wizard
-
+git+https://github.com/leggedrobotics/rsl_rl.git@main
 -e neural_wbc/core
 -e neural_wbc/data
 -e neural_wbc/isaac_lab_wrapper
@@ -13,4 +13,3 @@ dataclass-wizard
 -e neural_wbc/student_policy
 -e third_party/human2humanoid/phc
 -e third_party/mujoco_viewer
--e third_party/rsl_rl

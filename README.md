@@ -50,10 +50,6 @@ demonstrations and to link to the original implementation in Isaac Gym, please v
 
 1. Install Isaac Lab, see the [installation guide](https://isaac-sim.github.io/IsaacLab/v2.0.0/source/setup/installation/index.html).
     **Note**: Currently HOVER has been tested with Isaac Lab versions 2.0.0. After you clone the Isaac Lab
-    repository, check out the specific tag before installation. Also note that the `rsl_rl`
-    package is renamed to `rsl_rl_lib` with the current `v2.0.0` tag of Isaac Lab, causing installation issues.
-    This will be fixed once a new tag is created on the Isaac Lab repo.
-    This error would not affect this repo, as we have our own customized `rsl_rl` package.
     ```bash
     git fetch origin
     git checkout v2.0.0
@@ -70,7 +66,7 @@ demonstrations and to link to the original implementation in Isaac Gym, please v
 4. Install this repo and its dependencies by running the following command from the root of this
    repo:
     ```bash
-    ./install_deps.sh
+    pip install -r requirements.txt
     ```
 
 # Training
@@ -127,12 +123,12 @@ For more details, refer to the [human2humanoid repository](https://github.com/Le
 In the project's root directory,
 
 ```bash
-${ISAACLAB_PATH:?}/isaaclab.sh -p scripts/rsl_rl/train_teacher_policy.py \
+python scripts/rsl_rl/train_teacher_policy.py \
     --num_envs 1024 \
-    --reference_motion_path neural_wbc/data/data/motions/stable_punch.pkl
+    --reference_motion_path neural_wbc/data/data/motions/stable_punch.pkl # you can omit this as it's the default
 ```
 
-The teacher policy is trained for 10000000 iterations, or until the user interrupts the training. The resulting checkpoint is stored in `neural_wbc/data/data/policy/h1:teacher/` and the filename is `model_<iteration_number>.pt`.
+The teacher policy is trained for 10000000 iterations, or until the user interrupts the training. The resulting checkpoint is stored in `<data_time>` and the filename is `model_<iteration_number>.pt`.
 
 
 ## Student Policy
@@ -140,15 +136,20 @@ The teacher policy is trained for 10000000 iterations, or until the user interru
 
 In the project's root directory,
 ```bash
-${ISAACLAB_PATH:?}/isaaclab.sh -p scripts/rsl_rl/train_student_policy.py \
+python scripts/rsl_rl/train_student_policy.py \
     --num_envs 1024 \
-    --reference_motion_path neural_wbc/data/data/motions/stable_punch.pkl \
-    --teacher_policy.resume_path neural_wbc/data/data/policy/h1:teacher \
-    --teacher_policy.checkpoint model_<iteration_number>.pt
+    --headless
 ```
 This assumes that you have already trained the teacher policy as there is no provided teacher policy in the repo. Change the filename to match the checkpoint you trained.
 The exact path of the teacher policy does not matter, but it is recommended to store it in the data folder. If stored outside the data folder, you might need to provide the full path.
 
+## Multi-GPU
+It is possible to train on a node with multiple gpus or multiple nodes with multiple gpues.
+In order to train the teacher on a machine with 4 gpus:
+```bash
+python -m torch.distributed.run --nnodes=1 --nproc_per_node=4 scripts/rsl_rl/train_teacher.py --num_envs=1024 --headless --distributed
+```
+This will generate 4 IsaacSim simulation, each containing 1024 environments.
 
 ## General Remarks for Training
 
@@ -158,16 +159,15 @@ The exact path of the teacher policy does not matter, but it is recommended to s
     results we recommend to train with the full amass dataset.
 - Per default the trained checkpoints are stored to `logs/teacher/` or `logs/student/`.
 - If you don't want to train from scratch you can resume training from a checkpoint using the
-    options `--teacher_policy.resume_path`/`--student_policy.resume_path` and
-    `--teacher_policy.checkpoint`/`--student_policy.checkpoint`. For example to resume training of
+    options `--load_run=<date_time>` and/or `--checkpoint=<model_iter.pt>`. For example to resume training of
     the teacher use
 
     ```bash
-    ${ISAACLAB_PATH:?}/isaaclab.sh -p scripts/rsl_rl/train_teacher_policy.py \
+    python scripts/rsl_rl/train_teacher_policy.py \
         --num_envs 10 \
-        --reference_motion_path neural_wbc/data/data/motions/stable_punch.pkl \
-        --teacher_policy.resume_path neural_wbc/data/data/policy/h1:teacher \
-        --teacher_policy.checkpoint model_<iteration_number>.pt
+        --load_run 2025-05-09_09-23-50 \
+        --checkpoint model_500.pt
+
     ```
 
 - Training requires a single GPU, we found the following performance when training on different
@@ -233,24 +233,21 @@ In both cases the same commands from above can be used to launch the training.
 In the project's root directory,
 
 ```bash
-${ISAACLAB_PATH:?}/isaaclab.sh -p scripts/rsl_rl/play.py \
+python scripts/rsl_rl/play.py \
     --num_envs 10 \
     --reference_motion_path neural_wbc/data/data/motions/stable_punch.pkl \
-    --teacher_policy.resume_path neural_wbc/data/data/policy/h1:teacher \
-    --teacher_policy.checkpoint model_<iteration_number>.pt
 ```
+This will run the latest checkpoint in the latest run.
+Alternatively you can specify the run from which you want to load the checkpoint from by passing `--load_run=logs/rsl_rl/teacher_policy/h1/<date_time>`, which will use the latest checkpoint in the folder. You can also specify a specific checkpoint by passing `--checkpoint=<model_iter.pt>`
 
 ## Play Student Policy
 
 In the project's root directory,
 
 ```bash
-${ISAACLAB_PATH:?}/isaaclab.sh -p scripts/rsl_rl/play.py \
+python scripts/rsl_rl/play.py \
     --num_envs 10 \
-    --reference_motion_path neural_wbc/data/data/motions/stable_punch.pkl \
     --student_player \
-    --student_path neural_wbc/data/data/policy/h1:student \
-    --student_checkpoint model_<iteration_number>.pt
 ```
 
 # Evaluation
@@ -296,13 +293,17 @@ The evaluation script, `scripts/rsl_rl/eval.py`, uses the same arguments as the 
 `scripts/rsl_rl/play.py`. You can use it for both teacher and student policies.
 
 ```bash
-${ISAACLAB_PATH}/isaaclab.sh -p scripts/rsl_rl/eval.py \
+# For a teacher
+python scripts/rsl_rl/eval.py \
     --num_envs 10 \
-    --teacher_policy.resume_path neural_wbc/data/data/policy/h1:teacher \
-    --teacher_policy.checkpoint model_<iteration_number>.pt
 ```
 
-
+``` bash
+# For a student
+python scripts/rsl_rl/eval.py \
+    --num_envs 10 \
+    --student_player
+```
 # Overwriting Configuration Values
 
 To customize and overwrite default environment configuration values, you can provide a YAML file

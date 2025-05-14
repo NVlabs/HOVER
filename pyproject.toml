@@ -6,6 +6,9 @@ build-backend = "setuptools.build_meta"
 name = "neural_wbc"
 version = "0.1.0"
 
+[tool.setuptools.packages.find]
+include = ["neural_wbc"]
+
 [tool.isort]
 atomic = true
 profile = "black"
@@ -58,10 +61,6 @@ known_isaaclabparty = [
     "isaaclab_tasks",
     "isaaclab_assets"
 ]
-
-[tool.setuptools]
-package-dir = {"rsl_rl" = "third_party/rsl_rl/rsl_rl"}
-packages = ["rsl_rl"]
 
 [tool.pyright]
 exclude = [

@@ -13,37 +13,41 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from isaaclab_rl.rsl_rl import RslRlOnPolicyRunnerCfg, RslRlPpoActorCriticCfg, RslRlPpoAlgorithmCfg
+from dataclasses import MISSING
+
+from isaaclab_rl.rsl_rl import RslRlDistillationAlgorithmCfg, RslRlDistillationStudentTeacherCfg, RslRlOnPolicyRunnerCfg
 
 from isaaclab.utils import configclass
 
 
 @configclass
-class TeacherPolicyRunnerCfg(RslRlOnPolicyRunnerCfg):
+class RslDistillationAlgorithm_Extended_Cfg(RslRlDistillationAlgorithmCfg):
+    """Configuration settings for the distillation algorithm."""
+
+    # Add max_grad_norm to the configuration
+    # As it has not been added to isaaclab yet
+    max_grad_norm: float = MISSING
+    pass
+
+
+@configclass
+class StudentPolicyRunnerCfg(RslRlOnPolicyRunnerCfg):
     """Configuration settings for the runner."""
 
-    num_steps_per_env = 24
-    max_iterations = 10000000
+    num_steps_per_env = 1
+    max_iterations = 200000
     save_interval = 500
-    experiment_name = "teacher_policy"
+    experiment_name = "student_policy"
     empirical_normalization = False
-    policy = RslRlPpoActorCriticCfg(
-        actor_hidden_dims=[512, 256, 128],
-        critic_hidden_dims=[512, 256, 128],
+    policy = RslRlDistillationStudentTeacherCfg(
+        student_hidden_dims=[512, 256, 128],
+        teacher_hidden_dims=[512, 256, 128],
         activation="elu",
-        init_noise_std=1.0,
+        init_noise_std=0.001,
     )
-    algorithm = RslRlPpoAlgorithmCfg(
-        value_loss_coef=1.0,
-        use_clipped_value_loss=True,
-        clip_param=0.2,
-        entropy_coef=0.005,
+    algorithm = RslDistillationAlgorithm_Extended_Cfg(
         num_learning_epochs=5,
-        num_mini_batches=4,
-        learning_rate=1.0e-3,
-        schedule="adaptive",
-        gamma=0.99,
-        lam=0.95,
-        desired_kl=0.01,
-        max_grad_norm=1.0,
+        learning_rate=5e-04,
+        gradient_length=1,
+        max_grad_norm=0.2,
     )

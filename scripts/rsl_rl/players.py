@@ -15,22 +15,24 @@
 
 
 import argparse
-import json
 import os
 import pprint
 import torch
 from typing import Any
 
-from isaaclab_rl.rsl_rl import export_policy_as_onnx
-from teacher_policy_cfg import TeacherPolicyCfg
-from utils import get_ppo_runner_and_checkpoint_path
+import cli_args
+from isaaclab_rl.rsl_rl import export_policy_as_jit, export_policy_as_onnx
+from rsl_rl.runners import OnPolicyRunner
+from student_policy_cfg import StudentPolicyRunnerCfg
+from teacher_policy_cfg import TeacherPolicyRunnerCfg
 from vecenv_wrapper import RslRlNeuralWBCVecEnvWrapper
 
 from neural_wbc.core.evaluator import Evaluator
 from neural_wbc.core.modes import NeuralWBCModes
 from neural_wbc.isaac_lab_wrapper.neural_wbc_env import NeuralWBCEnv
 from neural_wbc.isaac_lab_wrapper.neural_wbc_env_cfg_h1 import NeuralWBCEnvCfgH1
-from neural_wbc.student_policy import StudentPolicyTrainer, StudentPolicyTrainerCfg
+
+from isaaclab_tasks.utils import get_checkpoint_path
 
 
 class Player:
@@ -57,35 +59,36 @@ class Player:
 
         # Create environment and wrap it for RSL RL.
         self.env = NeuralWBCEnv(cfg=env_cfg)
-        self.wrapped_env = RslRlNeuralWBCVecEnvWrapper(self.env)
+        self.env = RslRlNeuralWBCVecEnvWrapper(self.env)
 
-        if self.student_player:
-            student_path = args_cli.student_path
-            if student_path:
-                with open(os.path.join(student_path, "config.json")) as fh:
-                    config_dict = json.load(fh)
-                config_dict["teacher_policy"] = None
-                config_dict["resume_path"] = student_path
-                config_dict["checkpoint"] = args_cli.student_checkpoint
-                student_cfg = StudentPolicyTrainerCfg(**config_dict)
-                student_trainer = StudentPolicyTrainer(env=self.wrapped_env, cfg=student_cfg)
-                self.policy = student_trainer.get_inference_policy(device=self.env.device)
-            else:
-                raise ValueError("student_policy.resume_path is needed for play or eval. Please specify a value.")
-        else:
-            teacher_policy_cfg = TeacherPolicyCfg.from_argparse_args(args_cli)
-            ppo_runner, checkpoint_path = get_ppo_runner_and_checkpoint_path(
-                teacher_policy_cfg=teacher_policy_cfg, wrapped_env=self.wrapped_env, device=self.env.device
-            )
-            ppo_runner.load(checkpoint_path)
-            print(f"[INFO]: Loaded model checkpoint from: {checkpoint_path}")
+        runner_cfg = TeacherPolicyRunnerCfg() if not self.student_player else StudentPolicyRunnerCfg()
+        agent_cfg = cli_args.update_rsl_rl_cfg(runner_cfg, args_cli)
 
-            # obtain the trained policy for inference
-            self.policy = ppo_runner.get_inference_policy(device=self.env.device)
+        log_root_path = os.path.join("logs", "rsl_rl", args_cli.robot, agent_cfg.experiment_name)
+        log_root_path = os.path.abspath(log_root_path)
 
-            # export policy to onnx
-            export_model_dir = os.path.join(os.path.dirname(checkpoint_path), "exported")
-            export_policy_as_onnx(ppo_runner.alg.actor_critic, export_model_dir, filename="policy.onnx")
+        # load the policy from checkpoint
+        print(f"[INFO] Loading experiment from directory: {log_root_path}")
+        resume_path = get_checkpoint_path(log_root_path, agent_cfg.load_run, agent_cfg.load_checkpoint)
+
+        ppo_runner = OnPolicyRunner(env=self.env, train_cfg=agent_cfg.to_dict(), log_dir=None)
+        ppo_runner.load(resume_path)
+        print(f"[INFO]: Loaded model checkpoint from: {resume_path}")
+
+        # obtain the trained policy for inference
+        self.policy = ppo_runner.get_inference_policy(device=self.env.device)
+
+        # export policy to onnx
+        export_model_dir = os.path.join(os.path.dirname(resume_path), "exported")
+        export_policy_as_jit(
+            ppo_runner.alg.policy, ppo_runner.obs_normalizer, path=export_model_dir, filename="policy.pt"
+        )
+        export_policy_as_onnx(
+            ppo_runner.alg.policy,
+            normalizer=ppo_runner.obs_normalizer,
+            path=export_model_dir,
+            filename="policy.onnx",
+        )
 
     def _update_env_cfg(self, env_cfg: NeuralWBCEnvCfgH1, custom_config: dict[str, Any]):
         for key, value in custom_config.items():
@@ -101,7 +104,7 @@ class Player:
         pprint.pprint(env_cfg)
 
     def play(self, simulation_app):
-        obs = self.wrapped_env.get_observations()
+        obs, extras = self.env.get_observations()
 
         # simulate environment
         while simulation_app.is_running() and not self._should_stop():
@@ -110,9 +113,13 @@ class Player:
                 # agent stepping
                 actions = self.policy(obs)
                 # env stepping
-                obs, privileged_obs, rewards, dones, extras = self.wrapped_env.step(actions)
+                obs, rewards, dones, extras = self.env.step(actions)
                 obs = self._post_step(
-                    obs=obs, privileged_obs=privileged_obs, rewards=rewards, dones=dones, extras=extras
+                    obs=obs,
+                    privileged_obs=extras["observations"]["critic"],
+                    rewards=rewards,
+                    dones=dones,
+                    extras=extras,
                 )
 
         # close the simulator
@@ -149,7 +156,7 @@ class EvaluationPlayer(Player):
         self, args_cli: argparse.Namespace, metrics_path: str | None = None, custom_config: dict[str, Any] | None = None
     ):
         super().__init__(randomize=False, args_cli=args_cli, custom_config=custom_config)
-        self._evaluator = Evaluator(env_wrapper=self.wrapped_env, metrics_path=metrics_path)
+        self._evaluator = Evaluator(env_wrapper=self.env, metrics_path=metrics_path)
 
     def play(self, simulation_app):
         super().play(simulation_app=simulation_app)
@@ -164,6 +171,6 @@ class EvaluationPlayer(Player):
         reset_env = self._evaluator.collect(dones=dones, info=extras)
         if reset_env and not self._evaluator.is_evaluation_complete():
             self._evaluator.forward_motion_samples()
-            obs, _ = self.wrapped_env.reset()
+            obs, _ = self.env.reset()
 
         return obs
