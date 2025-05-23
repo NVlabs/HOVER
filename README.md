@@ -132,7 +132,8 @@ ${ISAACLAB_PATH:?}/isaaclab.sh -p scripts/rsl_rl/train_teacher_policy.py \
     --reference_motion_path neural_wbc/data/data/motions/stable_punch.pkl
 ```
 
-The teacher policy is trained for 10000000 iterations, or until the user interrupts the training. The resulting checkpoint is stored in `neural_wbc/data/data/policy/h1:teacher/` and the filename is `model_<iteration_number>.pt`.
+The max iteration of the teacher policy is set to 10,000,000 by default. The resulting checkpoint is stored in `neural_wbc/data/data/policy/h1:teacher/` and the filename is `model_<iteration_number>.pt`.
+The user can interrupt the training at anytime.  Normally, a good policy can be trained between `50k` to `80k` iterations.
 
 
 ## Student Policy
